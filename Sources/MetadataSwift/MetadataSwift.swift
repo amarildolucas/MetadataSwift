@@ -8,6 +8,8 @@ public struct Metadata: Sendable, Codable {
         self.storage = [:]
     }
 
+    /// Creates metadata from a heterogeneous dictionary, recursively wrapping values
+    /// into `MetadataValue` so nested structures remain strongly typed.
     public init(_ dictionary: [String: Any]) {
         var converted: [String: MetadataValue] = [:]
         converted.reserveCapacity(dictionary.count)
@@ -22,9 +24,12 @@ public struct Metadata: Sendable, Codable {
     }
 
     public var dictionary: [String: Any] {
-        storage.reduce(into: [:]) { result, element in
-            result[element.key] = element.value.value
+        var result: [String: Any] = [:]
+        result.reserveCapacity(storage.count)
+        for (key, value) in storage {
+            result[key] = value.value
         }
+        return result
     }
 
     public var keys: Dictionary<String, MetadataValue>.Keys {
@@ -53,7 +58,9 @@ public struct Metadata: Sendable, Codable {
     public func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: DynamicCodingKeys.self)
         for (key, value) in storage {
-            guard let codingKey = DynamicCodingKeys(stringValue: key) else { continue }
+            guard let codingKey = DynamicCodingKeys(stringValue: key) else {
+                preconditionFailure("DynamicCodingKeys should always produce a key for \(key)")
+            }
             try container.encode(value, forKey: codingKey)
         }
     }
