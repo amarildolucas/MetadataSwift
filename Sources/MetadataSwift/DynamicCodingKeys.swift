@@ -7,7 +7,8 @@
 
 import Foundation
 
-public struct DynamicCodingKeys: CodingKey {
+/// CodingKey implementation used to encode or decode arbitrary user-provided keys.
+public struct DynamicCodingKeys: CodingKey, Hashable, Sendable {
 	public let stringValue: String
 	public let intValue: Int?
 	
